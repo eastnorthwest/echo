@@ -28,7 +28,7 @@ describe(testContext(__filename), function () {
     return shallow(React.createElement(ProjectList, props))
   }
 
-  function buildProjectProps({projects, cycle, phase, users}) {
+  function buildProjectProps({projects, cycle, phase, members}) {
     const projectData = []
     projects.forEach(function (project) {
       const {cycleNumber, state} = cycle
@@ -38,7 +38,7 @@ describe(testContext(__filename), function () {
         name: project.name,
         phaseNumber: phase.number,
         goalTitle: project.goal.title,
-        memberHandles: users.map(u => u.handle).join(', '),
+        memberHandles: members.map(u => u.handle).join(', '),
       })
     })
     return projectData
@@ -61,7 +61,7 @@ describe(testContext(__filename), function () {
           cycle: this.cycle,
           phase: this.phase,
           projects: this.projects,
-          users: this.users,
+          members: this.users,
         }),
       }
       return customProps ? Object.assign({}, baseProps, customProps) : baseProps

@@ -6,7 +6,7 @@ import nock from 'nock'
 import config from 'src/config'
 import factory from 'src/test/factories'
 import {useFixture, resetDB} from 'src/test/helpers'
-import {getUserById} from 'src/server/services/dataService'
+import {Member} from 'src/server/services/dataService'
 
 import {processUserCreated} from '../userCreated'
 
@@ -14,7 +14,7 @@ describe(testContext(__filename), function () {
   beforeEach(resetDB)
 
   describe('processUserCreated', function () {
-    describe('when there is a new user', function () {
+    describe('when there is a new user w/ a member role', function () {
       beforeEach(async function () {
         this.chapter = await factory.create('chapter', {
           inviteCodes: ['test']
@@ -23,7 +23,7 @@ describe(testContext(__filename), function () {
           chapterId: this.chapter.id,
           cycleNumber: 3,
         })
-        this.user = await factory.build('user')
+        this.user = await factory.build('user', {roles: ['member']})
         this.nockGitHub = (user, replyCallback = () => ({})) => {
           useFixture.nockClean()
           nock(config.server.github.baseURL)
@@ -51,22 +51,21 @@ describe(testContext(__filename), function () {
         it('inserts the new member into the database', async function () {
           this.nockGitHub(this.user)
           await processUserCreated(this.user)
-          const user = await getUserById(this.user.id)
-
+          const user = await Member.get(this.user.id)
           expect(user).to.not.be.null
         })
 
         it('does not replace the given member if their account already exists', async function () {
           this.nockGitHub(this.user)
           await processUserCreated(this.user)
-          const oldUser = await getUserById(this.user.id)
+          const oldUser = await Member.get(this.user.id)
 
           assert.doesNotThrow(async function () {
             await processUserCreated(this.user)
           }, Error)
 
           await processUserCreated({...this.user, name: 'new name'})
-          const updatedUser = await getUserById(this.user.id)
+          const updatedUser = await Member.get(this.user.id)
 
           expect(updatedUser.createdAt).to.eql(oldUser.createdAt)
         })

@@ -7,7 +7,7 @@ import FontIcon from 'react-toolbox/lib/font_icon'
 import ProjectList from 'src/common/components/ProjectList'
 import {showLoad, hideLoad} from 'src/common/actions/app'
 import {findProjectsForCycle} from 'src/common/actions/project'
-import {findUsers} from 'src/common/actions/user'
+import {findMembers} from 'src/common/actions/member'
 import {findPhases} from 'src/common/actions/phase'
 import {userCan} from 'src/common/util'
 
@@ -45,7 +45,7 @@ class ProjectListContainer extends Component {
   }
 
   render() {
-    const {isBusy, currentUser, projects} = this.props
+    const {isBusy, showMemberLinks, showImport, projects} = this.props
 
     const projectData = projects.map(project => {
       const cycle = project.cycle || {}
@@ -53,13 +53,13 @@ class ProjectListContainer extends Component {
       const projectGoal = project.goal || {}
       const projectURL = `/projects/${project.name}`
       const memberHandles = (project.members || []).map(member => {
-        const memberURL = `/users/${member.handle}`
+        const memberURL = `/members/${member.handle}`
         const linkKey = `${project.name}-${member.handle}`
         return <Link key={linkKey} to={memberURL}>{member.handle}</Link>
       }).reduce((a, b) => [a, ', ', b])
       return {
         memberHandles: <span>{memberHandles}</span>,
-        name: userCan(currentUser, 'viewProject') ? (
+        name: showMemberLinks ? (
           <Link to={projectURL}>{project.name}</Link>
         ) : project.name,
         state: cycle.state,
@@ -82,7 +82,7 @@ class ProjectListContainer extends Component {
       <ProjectList
         projectData={projectData}
         projectModel={ProjectModel}
-        allowImport={userCan(currentUser, 'importProject')}
+        allowImport={showImport}
         onClickImport={this.handleClickImport}
         onLoadMoreClicked={this.props.handleLoadMore}
         />
@@ -95,7 +95,8 @@ ProjectListContainer.propTypes = {
   oldestCycleNumber: PropTypes.number,
   isBusy: PropTypes.bool.isRequired,
   loading: PropTypes.bool.isRequired,
-  currentUser: PropTypes.object.isRequired,
+  showMemberLinks: PropTypes.bool.isRequired,
+  showImport: PropTypes.bool.isRequired,
   fetchData: PropTypes.func.isRequired,
   handleLoadMore: PropTypes.func.isRequired,
   navigate: PropTypes.func.isRequired,
@@ -106,22 +107,22 @@ ProjectListContainer.propTypes = {
 ProjectListContainer.fetchData = fetchData
 
 function fetchData(dispatch) {
-  dispatch(findUsers())
+  dispatch(findMembers())
   dispatch(findPhases())
   dispatch(findProjectsForCycle())
 }
 
 function mapStateToProps(state) {
-  const {app, auth, projects, users, phases} = state
+  const {app, auth, projects, members, phases} = state
   const {projects: projectsById} = projects
-  const {users: usersById} = users
+  const {members: membersById} = members
   const {phases: phasesById} = phases
 
   const expandedProjects = Object.values(projectsById).map(project => {
     return {
       ...project,
       phase: phasesById[project.phaseId],
-      members: (project.memberIds || []).map(userId => (usersById[userId] || {})),
+      members: (project.memberIds || []).map(memberId => (membersById[memberId] || {})),
     }
   })
 
@@ -136,11 +137,12 @@ function mapStateToProps(state) {
     projectList[projectList.length - 1].cycle.cycleNumber : null
 
   return {
-    isBusy: projects.isBusy || users.isBusy,
+    isBusy: projects.isBusy || members.isBusy,
     loading: app.showLoading,
-    currentUser: auth.currentUser,
-    oldestCycleNumber,
     projects: projectList,
+    showMemberLinks: userCan(auth.currentUser, 'viewProject'),
+    showImport: userCan(auth.currentUser, 'importProject'),
+    oldestCycleNumber,
   }
 }
 

@@ -1,6 +1,6 @@
 import {CYCLE_STATES, PRACTICE, REFLECTION, COMPLETE} from 'src/common/models/cycle'
 import {userCan} from 'src/common/util'
-import getUser from 'src/server/actions/getUser'
+import getMemberUser from 'src/server/actions/getMemberUser'
 
 import assertUserIsModerator from 'src/server/actions/assertUserIsModerator'
 import createNextCycleForChapter from 'src/server/actions/createNextCycleForChapter'
@@ -14,8 +14,8 @@ import {
 
 const subcommands = {
   async init(args, {user}) {
-    const mergedUser = await getUser(user.id)
-    const currentCycle = await getLatestCycleForChapter(mergedUser.chapterId)
+    const memberUser = await getMemberUser(user.id)
+    const currentCycle = await getLatestCycleForChapter(memberUser.chapterId)
 
     if (currentCycle.state !== REFLECTION && currentCycle.state !== COMPLETE) {
       throw new LGBadRequestError('Failed to initialize a new cycle because the current cycle is still in progress.')

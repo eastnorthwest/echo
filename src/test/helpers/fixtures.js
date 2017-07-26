@@ -56,9 +56,9 @@ export const useFixture = {
       }
     })
   },
-  setCurrentCycleAndUserForProject() {
+  setCurrentCycleAndMemberForProject() {
     beforeEach(function () {
-      this.setCurrentCycleAndUserForProject = async function (project) {
+      this.setCurrentCycleAndMemberForProject = async function (project) {
         this.currentCycle = await Cycle.get(project.cycleId)
         this.currentUser = await factory.build('user', {id: project.memberIds[0]})
         this.member = await factory.build('member', {id: project.memberIds[0], chapterId: project.chapterId})
@@ -100,9 +100,10 @@ export const useFixture = {
         data: {[dataKey]: data},
       })
   },
-  nockIDMGetUser(user) {
+  nockIDMGetUser(user, {times = 1} = {}) {
     this.apiScope = nock(config.server.idm.baseURL)
       .post('/graphql')
+      .times(times)
       .reply(200, {
         data: {
           getUser: user,
@@ -115,7 +116,7 @@ export const useFixture = {
       .times(times)
       .reply(200, {
         data: {
-          getUsersByIds: users,
+          findUsers: users,
         },
       })
   },
@@ -128,6 +129,20 @@ export const useFixture = {
           findUsers: users,
         },
       })
+  },
+  nockIDMDeactivateUser(user) {
+    this.apiScope = nock(config.server.idm.baseURL)
+      .persist()
+      .intercept('/graphql', 'POST')
+      .reply(200, () => ({
+        data: {
+          deactivateUser: {
+            id: user.id,
+            active: false,
+            handle: user.handle,
+          },
+        },
+      }))
   },
   nockGetGoalInfo(goalNumber, {times = 1} = {}, overrideProps = {}) {
     this.apiScope = nock(config.server.goalLibrary.baseURL)
