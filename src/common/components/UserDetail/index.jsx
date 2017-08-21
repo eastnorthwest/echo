@@ -25,7 +25,14 @@ class UserDetail extends Component {
     this.showDeactivateUserDialog = this.showDeactivateUserDialog.bind(this)
     this.hideDeactivateUserDialog = this.hideDeactivateUserDialog.bind(this)
     this.handleDeactivateUser = this.handleDeactivateUser.bind(this)
-    this.state = {tabIndex: 0, showingDeactivateUserDialog: false}
+    this.showReactivateUserDialog = this.showReactivateUserDialog.bind(this)
+    this.hideReactivateUserDialog = this.hideReactivateUserDialog.bind(this)
+    this.handleReactivateUser = this.handleReactivateUser.bind(this)
+    this.state = {
+      tabIndex: 0,
+      showingDeactivateUserDialog: false,
+      showingReactivateUserDialog: false
+    }
   }
 
   showDeactivateUserDialog() {
@@ -36,6 +43,14 @@ class UserDetail extends Component {
     this.setState({showingDeactivateUserDialog: false})
   }
 
+  showReactivateUserDialog() {
+    this.setState({showingReactivateUserDialog: true})
+  }
+
+  hideReactivateUserDialog() {
+    this.setState({showingReactivateUserDialog: false})
+  }
+
   handleChangeTab(tabIndex) {
     this.setState({tabIndex})
   }
@@ -43,7 +58,17 @@ class UserDetail extends Component {
   handleDeactivateUser() {
     const {onDeactivateUser} = this.props
     onDeactivateUser(this.props.user.id)
-    this.setState({showingDeactivateUserDialog: false})
+    this.setState({
+      showingDeactivateUserDialog: false
+    })
+  }
+
+  handleReactivateUser() {
+    const {onReactivateUser} = this.props
+    onReactivateUser(this.props.user.id)
+    this.setState({
+      showingReactivateUserDialog: false
+    })
   }
 
   renderSidebar() {
@@ -61,7 +86,10 @@ class UserDetail extends Component {
       </a>
     ) : null
 
+    console.log('user.active:', user.active)
+
     const canBeDeactivated = user.active && userCan(currentUser, 'deactivateUser')
+    const canBeReactivated = !user.active && userCan(currentUser, 'reactivateUser')
     const canBeEdited = userCan(currentUser, 'updateUser')
 
     const deactivateUserDialog = canBeDeactivated ? (
@@ -78,11 +106,35 @@ class UserDetail extends Component {
       </ConfirmationDialog>
     ) : null
 
+    const reactivateUserDialog = canBeReactivated ? (
+      <ConfirmationDialog
+        active={this.state.showingReactivateUserDialog}
+        confirmLabel="Yes, Reactivate"
+        onClickCancel={this.hideReactivateUserDialog}
+        onClickConfirm={this.handleReactivateUser}
+        title=" "
+        >
+        <Flex justifyContent="center" alignItems="center">
+          Are you sure you want to reactivate {user.name} ({user.handle})?
+        </Flex>
+      </ConfirmationDialog>
+    ) : null
+
     const deactivateUserButton = canBeDeactivated ? (
       <WrappedButton
         label="Deactivate"
         disabled={false}
         onClick={this.showDeactivateUserDialog}
+        accent
+        raised
+        />
+      ) : <div/>
+
+    const reactivateUserButton = canBeReactivated ? (
+      <WrappedButton
+        label="Reactivate"
+        disabled={false}
+        onClick={this.showReactivateUserDialog}
         accent
         raised
         />
@@ -133,10 +185,12 @@ class UserDetail extends Component {
           </Flex>
           <Flex className={styles.controls}>
             {deactivateUserButton}
+            {reactivateUserButton}
             {editUserButton}
           </Flex>
         </div>
         {deactivateUserDialog}
+        {reactivateUserDialog}
       </ContentSidebar>
     )
   }
@@ -211,6 +265,7 @@ UserDetail.propTypes = {
   userProjectSummaries: PropTypes.array,
   navigate: PropTypes.func.isRequired,
   onDeactivateUser: PropTypes.func.isRequired,
+  onReactivateUser: PropTypes.func.isRequired,
   onClickEdit: PropTypes.func.isRequired,
   defaultAvatarURL: PropTypes.string,
 }

@@ -3,7 +3,11 @@ import {push} from 'react-router-redux'
 import {connect} from 'react-redux'
 
 import {showLoad, hideLoad} from 'src/common/actions/app'
-import {getUserSummary, deactivateUser} from 'src/common/actions/user'
+import {
+  getUserSummary,
+  deactivateUser,
+  reactivateUser
+} from 'src/common/actions/user'
 import UserDetail from 'src/common/components/UserDetail'
 
 class UserDetailContainer extends Component {
@@ -40,13 +44,22 @@ class UserDetailContainer extends Component {
   }
 
   render() {
-    const {user, navigate, currentUser, onDeactivateUser, userProjectSummaries, defaultAvatarURL} = this.props
+    const {
+      user,
+      navigate,
+      currentUser,
+      onDeactivateUser,
+      onReactivateUser,
+      userProjectSummaries,
+      defaultAvatarURL
+    } = this.props
     return user ? (
       <UserDetail
         user={user}
         navigate={navigate}
         currentUser={currentUser}
         onDeactivateUser={onDeactivateUser}
+        onReactivateUser={onReactivateUser}
         onClickEdit={this.handleClickEdit}
         userProjectSummaries={userProjectSummaries}
         onSelectProjectRow={this.handleSelectProjectRow}
@@ -67,6 +80,7 @@ UserDetailContainer.propTypes = {
   showLoad: PropTypes.func.isRequired,
   hideLoad: PropTypes.func.isRequired,
   onDeactivateUser: PropTypes.func.isRequired,
+  onReactivateUser: PropTypes.func.isRequired,
   defaultAvatarURL: PropTypes.string,
 }
 
@@ -105,6 +119,7 @@ function mapDispatchToProps(dispatch, props) {
     showLoad: () => dispatch(showLoad()),
     hideLoad: () => dispatch(hideLoad()),
     onDeactivateUser: id => dispatch(deactivateUser(id)),
+    onReactivateUser: id => dispatch(reactivateUser(id)),
   }
 }
 

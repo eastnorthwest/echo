@@ -5,6 +5,7 @@ import {default as addCollaboratorToRepo} from './addCollaboratorToRepo'
 import {default as getCollaboratorsForRepo} from './getCollaboratorsForRepo'
 import {default as removeUserFromOrganizations} from './removeUserFromOrganizations'
 import {default as removeUserFromOrganization} from './removeUserFromOrganization'
+import {default as reactivateUser} from './reactivateUser'
 
 /**
 * NOTE: this service's functions are exported the way they are to enable
@@ -20,4 +21,5 @@ export default {
   getCollaboratorsForRepo,
   removeUserFromOrganization,
   removeUserFromOrganizations,
+  reactivateUser,
 }
